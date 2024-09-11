@@ -30,12 +30,32 @@ func main() {
 ------------------------------Welcome to Calculator discount and percentage-------------------------------
 ----------------------------------------------------------------------------------------------------------`)
 
-	showInitialText := true
-	checkNumber4 := false
+	flags := struct {
+		check           bool
+		escPressed      bool
+		fourPressed     bool
+		showInitialText bool
+	}{
+		escPressed:      false,
+		fourPressed:     false,
+		check:           false,
+		showInitialText: true,
+	}
+
+	hideInitialMessage := func() {
+		flags.showInitialText = false
+		flags.check = true
+	}
 
 	for {
-		if showInitialText {
+		if flags.showInitialText {
 			fmt.Println(initialText)
+			if flags.escPressed {
+				flags.escPressed = false
+			}
+			if flags.fourPressed {
+				flags.fourPressed = false
+			}
 		}
 
 		char, key, err := keyboard.GetKey()
@@ -44,29 +64,54 @@ func main() {
 		}
 		switch char {
 		case '1':
-			fmt.Println("press 1")
+			discountCalculator()
 		case '2':
 			fmt.Println("press 2")
 		case '3':
 			fmt.Println("press 3")
 		case '4':
-			fmt.Println(extendText)
-			showInitialText = false
-			checkNumber4 = true
+			hideInitialMessage()
+			if !flags.fourPressed {
+				fmt.Println(extendText)
+			}
+			flags.fourPressed = true
 		default:
 			if key == keyboard.KeyEsc {
 				break
 			}
-			fmt.Printf("Press ESC to quit")
+			hideInitialMessage()
+			if !flags.escPressed {
+				fmt.Printf("Press ESC to quit")
+			}
+			flags.escPressed = true
+
 		}
+
 		if key == keyboard.KeyEsc {
 			break
 		}
 
-		if !checkNumber4 {
-			showInitialText = true
+		if !flags.check {
+			flags.showInitialText = true
 		}
-		checkNumber4 = false
+		flags.check = false
 	}
 
+}
+
+func discountCalculator() {
+	var amount float32
+	var discount int
+
+	fmt.Print("Enter the amount you have to spend: ")
+	fmt.Scanf("%f", &amount)
+	fmt.Println(amount)
+
+	fmt.Print("Enter the discount percentage: ")
+	fmt.Scanf("%d", &discount)
+	fmt.Println(discount)
+
+	canSpend := amount / (1 - (float32(discount) / 100))
+	fmt.Print("You can spend: ")
+	fmt.Println(canSpend)
 }
