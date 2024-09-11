@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/eiannone/keyboard"
+	"github.com/manifoldco/promptui"
 )
 
 func main() {
@@ -13,88 +14,55 @@ func main() {
 	defer func() {
 		_ = keyboard.Close()
 	}()
-	initialText := `
-	To calculate how much you can spend with a discount, press 1.
-	To calculate how much percentage a certain number is from an amount, press 2.
-	To calculate how much a percentage is from a certain amount, press 3.
-	For more detailed examples, press 4.
-	Press ESC to quit
-	`
-	extendText := `
-	Example 1: I have 100 USD and a 20% discount. How much can I spend? (Press 1)
-	Example 2: I receive 100 USD, but my salary is 130 USD. How much tax did I pay? (Press 2)
-	Example 3: They offer me a 20% raise on my 140 USD income. (Press 3)
-	`
+
 	fmt.Println(`
 ----------------------------------------------------------------------------------------------------------
 ------------------------------Welcome to Calculator discount and percentage-------------------------------
 ----------------------------------------------------------------------------------------------------------`)
-
-	flags := struct {
-		check           bool
-		escPressed      bool
-		fourPressed     bool
-		showInitialText bool
-	}{
-		escPressed:      false,
-		fourPressed:     false,
-		check:           false,
-		showInitialText: true,
-	}
-
-	hideInitialMessage := func() {
-		flags.showInitialText = false
-		flags.check = true
-	}
-
 	for {
-		if flags.showInitialText {
-			fmt.Println(initialText)
-			if flags.escPressed {
-				flags.escPressed = false
-			}
-			if flags.fourPressed {
-				flags.fourPressed = false
-			}
+
+		prompt := promptui.Select{
+			Label: "Choose an option",
+			Items: []string{
+				"1 - Calculate how much you can spend with a discount",
+				"2 - Calculate how much percentage a certain number is from an amount",
+				"3 - Calculate how much a percentage is from a certain amount",
+				"4 - Show detailed examples",
+				"Quit",
+			},
 		}
 
-		char, key, err := keyboard.GetKey()
+		_, result, err := prompt.Run()
 		if err != nil {
-			panic(err)
+			fmt.Println("Error:", err)
+			continue
 		}
-		switch char {
-		case '1':
+
+		switch result {
+		case "1 - Calculate how much you can spend with a discount":
 			discountCalculator()
-		case '2':
+		case "2 - Calculate how much percentage a certain number is from an amount":
 			percentageFromAmountCalculator()
-		case '3':
+		case "3 - Calculate how much a percentage is from a certain amount":
 			percentageOfAmountCalculator()
-		case '4':
-			hideInitialMessage()
-			if !flags.fourPressed {
-				fmt.Println(extendText)
-			}
-			flags.fourPressed = true
+		case "4 - Show detailed examples":
+			fmt.Println(`
+	Example 1: I have 100 USD and a 20% discount. How much can I spend? 
+	Example 2: I receive 100 USD, but my salary is 130 USD. How much tax did I pay? 
+	Example 3: They offer me a 20% raise on my 140 USD income. 
+	Press ESC to quit.
+	`)
 		default:
-			if key == keyboard.KeyEsc {
-				break
-			}
-			hideInitialMessage()
-			if !flags.escPressed {
-				fmt.Printf("Press ESC to quit")
-			}
-			flags.escPressed = true
-
+			fmt.Println("Are you sure?")
 		}
+		fmt.Println("Press ESC to quit.")
+		fmt.Printf("Or any other key to restart.")
 
-		if key == keyboard.KeyEsc {
+		if _, key, err := keyboard.GetKey(); err != nil {
+			panic(err)
+		} else if key == keyboard.KeyEsc {
 			break
 		}
-
-		if !flags.check {
-			flags.showInitialText = true
-		}
-		flags.check = false
 	}
 
 }
@@ -133,17 +101,40 @@ func percentageFromAmountCalculator() {
 }
 
 func percentageOfAmountCalculator() {
-	var percentage, total float32
+	prompt := promptui.Prompt{
+		Label: "Enter the total amount",
+		Validate: func(input string) error {
+			if _, err := fmt.Sscanf(input, "%f", new(float32)); err != nil {
+				return fmt.Errorf("invalid total amount")
+			}
+			return nil
+		},
+	}
+	totalStr, err := prompt.Run()
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	var total float32
+	fmt.Sscanf(totalStr, "%f", &total)
 
-	fmt.Print("Enter the total amount: ")
-	fmt.Scanf("%f", &total)
-	fmt.Println(total)
-
-	fmt.Print("Enter the percentage to calculate (e.g., 20 for 20%): ")
-	fmt.Scanf("%f", &percentage)
-	fmt.Println(percentage)
+	prompt = promptui.Prompt{
+		Label: "Enter the percentage to calculate (e.g., 20 for 20%)",
+		Validate: func(input string) error {
+			if _, err := fmt.Sscanf(input, "%f", new(float32)); err != nil {
+				return fmt.Errorf("invalid percentage")
+			}
+			return nil
+		},
+	}
+	percentageStr, err := prompt.Run()
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	var percentage float32
+	fmt.Sscanf(percentageStr, "%f", &percentage)
 
 	result := total * (1 + percentage/100)
-
 	fmt.Printf("Applying a %.2f%% increase to %.2f results in: %.2f\n", percentage, total, result)
 }
