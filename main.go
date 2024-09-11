@@ -66,9 +66,9 @@ func main() {
 		case '1':
 			discountCalculator()
 		case '2':
-			fmt.Println("press 2")
+			percentageFromAmountCalculator()
 		case '3':
-			fmt.Println("press 3")
+			percentageOfAmountCalculator()
 		case '4':
 			hideInitialMessage()
 			if !flags.fourPressed {
@@ -103,15 +103,47 @@ func discountCalculator() {
 	var amount float32
 	var discount int
 
-	fmt.Print("Enter the amount you have to spend: ")
+	fmt.Print("Enter the total amount you want to spend: ")
 	fmt.Scanf("%f", &amount)
 	fmt.Println(amount)
 
-	fmt.Print("Enter the discount percentage: ")
+	fmt.Print("Enter the discount percentage (e.g., 20 for 20%): ")
 	fmt.Scanf("%d", &discount)
 	fmt.Println(discount)
 
-	canSpend := amount / (1 - (float32(discount) / 100))
-	fmt.Print("You can spend: ")
-	fmt.Println(canSpend)
+	canSpend := amount / (1 - float32(discount)/100)
+
+	fmt.Printf("With a %d%% discount, you can spend: %.2f\n", discount, canSpend)
+}
+
+func percentageFromAmountCalculator() {
+	var amount, total float32
+
+	fmt.Print("Enter the total amount (e.g., your salary or total income): ")
+	fmt.Scanf("%f", &total)
+	fmt.Println(total)
+
+	fmt.Print("Enter the amount you have (e.g., your actual earnings): ")
+	fmt.Scanf("%f", &amount)
+	fmt.Println(amount)
+
+	percentage := ((amount / total) - 1) * -100
+
+	fmt.Printf("The amount %.2f is %.2f%% less than the total amount %.2f\n", amount, percentage, total)
+}
+
+func percentageOfAmountCalculator() {
+	var percentage, total float32
+
+	fmt.Print("Enter the total amount: ")
+	fmt.Scanf("%f", &total)
+	fmt.Println(total)
+
+	fmt.Print("Enter the percentage to calculate (e.g., 20 for 20%): ")
+	fmt.Scanf("%f", &percentage)
+	fmt.Println(percentage)
+
+	result := total * (1 + percentage/100)
+
+	fmt.Printf("Applying a %.2f%% increase to %.2f results in: %.2f\n", percentage, total, result)
 }
