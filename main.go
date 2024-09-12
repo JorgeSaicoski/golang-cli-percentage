@@ -108,17 +108,32 @@ func discountCalculator() {
 }
 
 func percentageFromAmountCalculator() {
-	var amount, total float32
 
-	fmt.Print("Enter the total amount (e.g., your salary or total income): ")
-	fmt.Scanf("%f", &total)
-	fmt.Println(total)
+	amountInterface, err := promptHandler("Enter the total amount (e.g., your salary or total income)", "%f", "invalid total amount")
+	amount, ok := amountInterface.(float64)
+	if !ok {
+		fmt.Println("Unexpected type for amount")
+		return
+	}
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
 
-	fmt.Print("Enter the amount you have (e.g., your actual earnings): ")
-	fmt.Scanf("%f", &amount)
-	fmt.Println(amount)
+	totalInterface, err := promptHandler("Enter the amount you have (e.g., your actual earnings)", "%f", "invalid total amount")
 
-	percentage := ((amount / total) - 1) * -100
+	total, ok := totalInterface.(float64)
+	if !ok {
+		fmt.Println("Unexpected type for amount")
+		return
+	}
+
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+
+	percentage := -((amount / total) - 1) * -100
 
 	fmt.Printf("The amount %.2f is %.2f%% less than the total amount %.2f\n", amount, percentage, total)
 }
@@ -160,4 +175,48 @@ func percentageOfAmountCalculator() {
 
 	result := total * (1 + percentage/100)
 	fmt.Printf("Applying a %.2f%% increase to %.2f results in: %.2f\n", percentage, total, result)
+}
+
+func promptHandler(labor string, format string, errorMessage string) (interface{}, error) {
+
+	prompt := promptui.Prompt{
+		Label: labor,
+		Validate: func(input string) error {
+			if format == "%d" {
+				var tmp int
+				if _, err := fmt.Sscanf(input, format, &tmp); err != nil {
+					return fmt.Errorf(errorMessage, err)
+				}
+			} else if format == "%f" {
+				var tmp float64
+				if _, err := fmt.Sscanf(input, format, &tmp); err != nil {
+					return fmt.Errorf(errorMessage, err)
+				}
+			} else {
+				return fmt.Errorf("unsupported format")
+			}
+			return nil
+		},
+	}
+
+	inputStr, err := prompt.Run()
+	if err != nil {
+		return nil, fmt.Errorf("failed to run prompt: %v", err)
+	}
+
+	if format == "%d" {
+		var input int
+		if _, err := fmt.Sscanf(inputStr, format, &input); err != nil {
+			return nil, fmt.Errorf("invalid integer format: %v", err)
+		}
+		return input, nil
+	} else if format == "%f" {
+		var input float64
+		if _, err := fmt.Sscanf(inputStr, format, &input); err != nil {
+			return nil, fmt.Errorf("invalid float format: %v", err)
+		}
+		return input, nil
+	}
+
+	return nil, fmt.Errorf("unsupported format")
 }
