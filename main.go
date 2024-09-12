@@ -68,16 +68,39 @@ func main() {
 }
 
 func discountCalculator() {
+	prompt := promptui.Prompt{
+		Label: "Enter the total amount you want to spend",
+		Validate: func(input string) error {
+			if _, err := fmt.Sscanf(input, "%f", new(float32)); err != nil {
+				return fmt.Errorf("invalid total amount")
+			}
+			return nil
+		},
+	}
+	amountStr, err := prompt.Run()
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
 	var amount float32
+	fmt.Sscanf(amountStr, "%f", &amount)
+
+	prompt = promptui.Prompt{
+		Label: "Enter the discount percentage (e.g., 20 for 20%)",
+		Validate: func(input string) error {
+			if _, err := fmt.Sscanf(input, "%d", new(int)); err != nil {
+				return fmt.Errorf("invalid discount percentage")
+			}
+			return nil
+		},
+	}
+	discountStr, err := prompt.Run()
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
 	var discount int
-
-	fmt.Print("Enter the total amount you want to spend: ")
-	fmt.Scanf("%f", &amount)
-	fmt.Println(amount)
-
-	fmt.Print("Enter the discount percentage (e.g., 20 for 20%): ")
-	fmt.Scanf("%d", &discount)
-	fmt.Println(discount)
+	fmt.Sscanf(discountStr, "%d", &discount)
 
 	canSpend := amount / (1 - float32(discount)/100)
 
